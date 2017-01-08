@@ -20,36 +20,79 @@ if($opts{r}) {
   unless(-d $ARGV[1]) {
     die "Error: you must specify a directory when using the -r option!";
   }
-  my %f_opts = ('wanted' => \&wanted, 'no_chdir' => 1);
+  my %f_opts = ('wanted' => \&track_files, 'no_chdir' => 1);
   find(\%f_opts, $ARGV[1]);
 }
 else {
-  unless(-f $ARGV[1]) {
-    die "Error: `$ARGV[1]' is not a file!";
+  # Input come from stdin.
+  if($ARGV[1] eq '-') {
+    search_file(regex => $regex, line_numbers => $opts{n});
+    exit 0;
   }
+
   push @files, $ARGV[1];
 }
 
 foreach my $file (@files) {
-  my $line_no = 1;
-
-  unless(open FILE, "<$file") {
-    print STDERR "Error: couldn't open `$file'!";
-	next;
-  }
-
-  while(<FILE>) {
-    chomp;
-	if(/$regex/) {
-	  print "$file", defined $opts{n}? ",$line_no" : "", ": '$_'\n";	  
-	}
-	$line_no += 1;
-  }
-
-  close FILE;
+  search_file(regex => $regex, file => $file, line_numbers => $opts{n});
 }
 
-sub wanted {
+# Search for a match.
+#
+sub search_file {
+  my %param = (
+    'line_numbers' => 0,
+    'file'         => undef,
+    'regex'        => qr//,
+    @_
+  );
+  my $file = undef;
+
+  if($param{file}) {
+    unless(open $file, "<$param{file}") {
+      print STDERR "Error: couldn't open `$param{file}'!";
+      return;
+    }
+  }
+  else{
+    $file = \*STDIN;
+  }
+
+  my @fmt_arg = ();
+  my $fmt_str = '';
+
+  if($param{file}) {
+    push @fmt_arg, $param{file};
+    $fmt_str = '%s:';
+  }
+
+  if($param{line_numbers}) {
+    $fmt_str .= '%d:';
+  }
+
+  $fmt_str .= "%s\n";
+
+  my $line_no = 1;
+
+  while(<$file>) {
+    chomp;
+
+    if(/$param{regex}/) {
+      if($param{line_numbers}) {
+        printf $fmt_str, (@fmt_arg, $line_no, $_);
+      }
+      else {
+        printf $fmt_str, (@fmt_arg, $_);
+      }
+    }
+
+    $line_no += 1;
+  }
+}
+
+# Find all files under a given directory.
+#
+sub track_files {
   unless(-f $File::Find::name) {
     return;
   }
@@ -57,6 +100,8 @@ sub wanted {
   push @files, $File::Find::name;
 }
 
+# Help message.
+#
 sub usage {
   print <<EOF;
 Usage:

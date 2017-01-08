@@ -3,9 +3,10 @@ A minimal implementation of the grep utility. It simplies print lines matching a
 
 Min-grep has the following features:
 
-	- search recursively in a directory
-	- print line numbers matching a pattern
-	- match case insensitive
+* Search recursively in a directory
+* Print line numbers matching a pattern
+* Match case insensitive
+* Understand pipes
 
 Nothing else ;-)
 
@@ -25,3 +26,7 @@ numbers when a match is found:
 Print all lines with floating point numbers:
 
 > perl min-grep "\d+\.\d+" foo.txt
+
+Input comes from a pipe. Match lines containing the substring 'bar':
+
+> echo "FOOBAR" |perl min-grep -i "bar" -
