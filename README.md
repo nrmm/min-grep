@@ -12,11 +12,11 @@ Nothing else ;-)
 
 It's meant for systems that don't have mechanisms to search files with a given content.
 
-#INSTALL
+## INSTALL
 
 There's no installation. All you need is a Perl environment.
 
-#EXAMPLES
+## EXAMPLES
 
 Search recursively all the files under the current directory and print line
 numbers when a match is found:
